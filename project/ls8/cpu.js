@@ -58,6 +58,19 @@ class CPU {
         switch (op) {
             case 'MUL':
                 // !!! IMPLEMENT ME
+
+                break;
+            case 'ADD':
+                break;
+            case 'SUB':
+                break;
+            case 'DIV':
+                break;
+            case 'INC':
+                break;
+            case 'DEC':
+                break;
+            case 'CMP':
                 break;
         }
     }
@@ -71,6 +84,7 @@ class CPU {
         // index into memory of the next instruction.)
 
         // !!! IMPLEMENT ME
+
 
         // Debugging output
         //console.log(`${this.reg.PC}: ${IR.toString(2)}`);
