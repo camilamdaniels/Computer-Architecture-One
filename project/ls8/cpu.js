@@ -55,22 +55,12 @@ class CPU {
      * op can be: ADD SUB MUL DIV INC DEC CMP
      */
     alu(op, regA, regB) {
+
         switch (op) {
             case 'MUL':
                 // !!! IMPLEMENT ME
-
-                break;
-            case 'ADD':
-                break;
-            case 'SUB':
-                break;
-            case 'DIV':
-                break;
-            case 'INC':
-                break;
-            case 'DEC':
-                break;
-            case 'CMP':
+                this.reg[regA] = this.reg[regA] * this.reg[regB];
+                // return this.reg[regA] * this.reg[regB];
                 break;
         }
     }
@@ -83,6 +73,7 @@ class CPU {
         // from the memory address pointed to by the PC. (I.e. the PC holds the
         // index into memory of the next instruction.)
 
+        let IR = this.ram.read(this.reg.PC);
         // !!! IMPLEMENT ME
 
 
@@ -92,10 +83,28 @@ class CPU {
         // Get the two bytes in memory _after_ the PC in case the instruction
         // needs them.
 
+        let operandA = this.ram.read(this.reg.PC + 1);
+        let operandB = this.ram.read(this.reg.PC + 2);
         // !!! IMPLEMENT ME
 
         // Execute the instruction. Perform the actions for the instruction as
         // outlined in the LS-8 spec.
+
+        switch(IR) {
+            case 0b00000001:
+                this.stopClock();
+                break;
+            case 0b10011001:
+                this.reg[operandA] = operandB;
+                break;
+            case 0b01000011:
+                console.log(this.reg[operandA]);
+            default:
+                console.log("Unknown instruction: "+IR.toString(2));
+                this.stopClock();
+                break;
+        }
+
 
         // !!! IMPLEMENT ME
 
@@ -104,6 +113,7 @@ class CPU {
         // instruction byte tells you how many bytes follow the instruction byte
         // for any particular instruction.
         
+        this.reg.PC += (IR >>> 6) + 1;
         // !!! IMPLEMENT ME
     }
 }
