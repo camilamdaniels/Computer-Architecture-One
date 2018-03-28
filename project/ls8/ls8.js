@@ -14,15 +14,18 @@ function processProgram(arr, cpu) {
     cpu.startClock();
 }
 
-function loadMemory(cpu) {
+function loadMemory(cpu, filename) {
     let program = [];
     if (process.argv.length === 3) {
         const lineReader = require('readline').createInterface({
             input: fs.createReadStream(process.argv[2])
         })
         lineReader.on('line', function(line) {
-            line = line.substring(0, line.indexOf('#'));
+            // console.log(line);
+            if (line.includes('#')) line = line.substring(0, line.indexOf('#'));
+            
             if (line.length > 1) {
+                // console.log(line);
                 program.push(line);
             } else {
                 return; 

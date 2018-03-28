@@ -2,10 +2,22 @@
  * LS-8 v2.0 emulator skeleton code
  */
 
+ // we have to implement stack
+ // to implement stack we need to implement push and pop
+
+ // the stack pointer is located in register r7
+ // copy the value from the address pointed to by the stack pointer to the given register
+ // increment stack pointer
+
 const HLT = 0b00000001;
 const LDI = 0b10011001;
 const PRN = 0b01000011;
 const MUL = 0b10101010;
+const POP = 0b01001100;
+const PUSH = 0b01001101;
+const CALL = 0b01001000;
+const RET = 0b00001001;
+const ADD = 0b10101000;
 
 /**
  * Class for simulating a simple Computer (CPU & memory)
@@ -65,6 +77,15 @@ class CPU {
       case 'MUL':
         this.reg[regA] = varA * varB;
         break;
+      case 'INC':
+        this.reg[regA]++;
+        break;
+      case 'DEC':
+        this.reg[regA]--;
+        break;
+      case 'ADD':
+        this.reg[regA] = varA + varB;
+        break;
     }
   }
 
@@ -78,7 +99,8 @@ class CPU {
     let IR = this.ram.read(this.reg.PC);
 
     // Debugging output
-    //console.log(`${this.reg.PC}: ${IR.toString(2)}`);
+    // console.log(`${this.reg.PC}: ${IR.toString(2)}`);
+
 
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
@@ -102,20 +124,54 @@ class CPU {
       this.alu('MUL', operandA, operandB);
     };
 
+    const handle_ADD = (operandA, operandB) => {
+      this.alu('ADD', operandA, operandB);
+    }
+
     const handle_ERROR = IR => {
       console.log('Unknown instruction: ' + IR.toString(2));
       this.stopClock();
     };
 
+    const handle_POP = () => {
+      this.reg[operandA] = this.ram.read(this.reg[7]);
+      this.reg[7]++;
+      return this.ram.read(this.reg[7]);
+    }
+
+    const handle_PUSH = (operandA, operandB, value) => {
+      this.reg[7]--;
+      if (value === undefined) this.ram.write(this.reg[7], this.reg[operandA]);
+      else this.ram.write(this.reg[7], value);
+    }
+
+    const handle_CALL = (instruction) => {
+      // address of the next instruction that will execute is pushed on to the stack
+      handle_PUSH(null, null, this.reg.PC + 2);
+      // PC is set to the address stored in the given register
+      this.reg.PC = this.reg[operandA];
+    }
+
+    const handle_RET = () => {
+      this.reg.PC = this.ram.read(this.reg[7]);
+      this.reg[7]++;
+    }
+
     const branchTable = {
       [LDI]: handle_LDI,
       [HLT]: handle_HLT,
       [PRN]: handle_PRN,
-      [MUL]: handle_MUL
+      [MUL]: handle_MUL,
+      [POP]: handle_POP,
+      [PUSH]: handle_PUSH,
+      [CALL]: handle_CALL,
+      [RET]: handle_RET,
+      [ADD]: handle_ADD
     };
-
+    
     if (Object.keys(branchTable).includes(IR.toString())) {
-      branchTable[IR](operandA, operandB);
+      let handler = branchTable[IR];
+      handler(operandA, operandB);
     } else {
       handle_ERROR(IR);
     }
@@ -124,8 +180,7 @@ class CPU {
     // can be 1, 2, or 3 bytes long. Hint: the high 2 bits of the
     // instruction byte tells you how many bytes follow the instruction byte
     // for any particular instruction.
-
-    this.reg.PC += (IR >>> 6) + 1;
+    if (IR !== CALL && IR !== RET) this.reg.PC += (IR >>> 6) + 1;
   }
 }
 
