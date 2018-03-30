@@ -21,7 +21,7 @@ function loadMemory(cpu, filename) {
             input: fs.createReadStream(process.argv[2])
         })
         lineReader.on('line', function(line) {
-            // console.log(line);
+            console.log(line);
             if (line.includes('#')) line = line.substring(0, line.indexOf('#'));
             
             if (line.length > 1) {

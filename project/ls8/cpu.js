@@ -18,6 +18,10 @@ const PUSH = 0b01001101;
 const CALL = 0b01001000;
 const RET = 0b00001001;
 const ADD = 0b10101000;
+const CMP = 0b10100000;
+const JMP = 0b01010000;
+const JEQ = 0b01010001;
+const JNE = 0b01010010;
 
 /**
  * Class for simulating a simple Computer (CPU & memory)
@@ -86,6 +90,10 @@ class CPU {
       case 'ADD':
         this.reg[regA] = varA + varB;
         break;
+      case 'CMP':
+        if (varA < varB) return 'L';
+        else if (varA > varB) return 'G';
+        else if (varA === varB) return 'E';
     }
   }
 
@@ -157,6 +165,50 @@ class CPU {
       this.reg[7]++;
     }
 
+    const handle_CMP = () => {
+      const comparator = this.alu('CMP', operandA, operandB);
+      // console.log(comparator);
+      switch (comparator) {
+        case 'L':
+          this.reg.FL = 0b00000100;
+          // console.log('FL register: '+ typeof this.reg.FL.toString(2));
+          break;
+        case 'G':
+          this.reg.FL = 0b00000010;
+          // console.log('FL register: '+this.reg.FL);
+          break;
+        case 'E':
+          this.reg.FL = 0b00000001;
+          // console.log('FL register: '+this.reg.FL.toString(2));
+          break;
+      }
+    }
+
+    const handle_JMP = (register) => {
+      // jump to the address stored in the given register
+      // set the PC to the address stored in the given register
+      // this.reg.PC = this.reg[operandA];
+      // console.log('jumping');
+      // return this.reg[operandA];
+      this.reg.PC = register;
+    }
+
+    const handle_JEQ = (register) => {
+      // this.alu('CMP', operandA, operandB);
+      // if (this.ram.read(this.reg[FL]) === 0b00000001) this.reg.PC = this.reg[operandA];
+      // console.log(this.reg.FL);
+      if (this.reg.FL.toString(2) == '0b00000001') this.reg.PC = register;
+    }
+
+    const handle_JNE = (register) => {
+      // this.alu('CMP', operandA, operandB);
+      console.log('TEST 1: '+this.reg.FL);
+      if (this.reg.FL.toString(2) == '0b00000100' || this.reg.FL.toString(2) == '0b00000010') {
+        console.log('TEST 1: '+this.reg.FL);
+        this.reg.PC = register;
+      }
+    }
+
     const branchTable = {
       [LDI]: handle_LDI,
       [HLT]: handle_HLT,
@@ -166,9 +218,13 @@ class CPU {
       [PUSH]: handle_PUSH,
       [CALL]: handle_CALL,
       [RET]: handle_RET,
-      [ADD]: handle_ADD
+      [ADD]: handle_ADD,
+      [CMP]: handle_CMP,
+      [JMP]: handle_JMP,
+      [JNE]: handle_JNE,
+      [JEQ]: handle_JEQ
     };
-    
+
     if (Object.keys(branchTable).includes(IR.toString())) {
       let handler = branchTable[IR];
       handler(operandA, operandB);
